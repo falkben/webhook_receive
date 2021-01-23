@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+pytest
+pytest-env
+requests
