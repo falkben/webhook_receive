@@ -1,6 +1,7 @@
 [tool.pytest.ini_options]
 env = [
   "DEPLOY_SCRIPTS_FILE = tests/data/test_deploy_script.json",
+  "GITHUB_IPS_ONLY = false",
 ]
 testpaths = [
   "tests",
