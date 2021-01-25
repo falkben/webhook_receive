@@ -1,5 +1,7 @@
 # Webhook receive
 
+![Python package](https://github.com/falkben/webhook_receive/workflows/Python%20package/badge.svg) [![codecov](https://codecov.io/gh/falkben/webhook_receive/branch/main/graph/badge.svg?token=O3ZG3KqxXt)](https://codecov.io/gh/falkben/webhook_receive)
+
 Simple FastAPI application to process webhooks
 
 ## Install

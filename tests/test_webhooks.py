@@ -23,9 +23,7 @@ def test_output_file():
 
 def test_webhook_receive(test_output_file):
 
-    data = {
-        "ref": "refs/heads/master",
-    }
+    data = {"ref": "refs/heads/master", "repository": {"default_branch": "master"}}
 
     resp = client.post(
         "/webhook/test_app", json=data, headers={"X-GITHUB-EVENT": "push"}
@@ -41,10 +39,15 @@ def test_webhook_receive(test_output_file):
 
 
 def test_webhook_wrong_app(test_output_file):
-    data = {
-        "ref": "refs/heads/master",
-    }
+    data = {"ref": "refs/heads/master", "repository": {"default_branch": "master"}}
     resp = client.post(
         "/webhook/NOT_AN_APP", json=data, headers={"X-GITHUB-EVENT": "push"}
     )
-    assert resp.status_code == 400
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "Skipped"}
+
+
+def test_ping():
+    resp = client.post("/webhook/doesnt_matter", headers={"X-GITHUB-EVENT": "ping"})
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "pong"}
