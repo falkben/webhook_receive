@@ -4,3 +4,4 @@ pytest
 pytest-env
 requests
 httpx
+pytest-asyncio

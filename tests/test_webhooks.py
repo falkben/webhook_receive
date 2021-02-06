@@ -1,8 +1,12 @@
 import os
 import time
+from unittest import mock
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
+
+from webhook_receive import main
 from webhook_receive.main import app
 
 client = TestClient(app)
@@ -19,6 +23,20 @@ def test_output_file():
     yield
 
     remove_testfile()
+
+
+@pytest.mark.asyncio
+@mock.patch("webhook_receive.main.GITHUB_IPS_ONLY", True)
+async def test_github_ips_only():
+
+    # using httpx async test client here to allow setting scope (e.g. IP address)
+    # httpx defaults to 127.0.0.1
+    async with httpx.AsyncClient(app=app, base_url="http://testserver") as client:
+        resp = await client.post(
+            "/webhook/doesnt_matter", headers={"X-GITHUB-EVENT": "ping"}
+        )
+    assert resp.status_code == 403
+    assert resp.json() == {"detail": "Not a GitHub hooks ip address"}
 
 
 def test_webhook_receive(test_output_file):

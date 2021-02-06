@@ -4,7 +4,7 @@ import os
 import subprocess
 
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, status
 from httpx import AsyncClient
 
 app = FastAPI()
@@ -32,21 +32,29 @@ async def receive_payload(
 
     # Allow GitHub IPs only
     if GITHUB_IPS_ONLY:
-        src_ip = ipaddress.ip_address(request.client.host)
+        try:
+            src_ip = ipaddress.ip_address(request.client.host)
+        except ValueError:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Could not hook sender ip address"
+            )
         async with AsyncClient() as client:
             allowlist = await client.get("https://api.github.com/meta")
         for valid_ip in allowlist.json()["hooks"]:
             if src_ip in ipaddress.ip_network(valid_ip):
                 break
         else:
-            raise HTTPException(403, "Not a GitHub hooks ip address")
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "Not a GitHub hooks ip address"
+            )
 
     if x_github_event == "push":
         payload = await request.json()
 
         default_branch = payload["repository"]["default_branch"]
+        # check if event is referencing the default branch
         if "ref" in payload and payload["ref"] == f"refs/heads/{default_branch}":
-            # redeploy app given by app_name
+            # check if app_name is declared in config
             if app_name in DEPLOY_SCRIPTS:
                 script_name = DEPLOY_SCRIPTS[app_name]
                 background_tasks.add_task(deploy_application, script_name)

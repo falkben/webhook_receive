@@ -6,3 +6,6 @@ env = [
 testpaths = [
   "tests",
 ]
+
+[tool.isort]
+profile = "black"
