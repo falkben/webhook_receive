@@ -17,15 +17,22 @@ This is a work in progress and should be used with caution.
 ## Install
 
 ```sh
+git clone https://github.com/falkben/webhook_receive.git
+cd webhook_receive
 python3 -m venv venv
+. venv/bin/activate
 pip install -e .
 ```
 
 ## Running
 
-`uvicorn webhook_receive.main:app --port 5000` (or w/ auto reload `--reload`)
+```sh
+uvicorn webhook_receive.main:app --port 5000
+```
 
-### *Note: in production, set up server to start automatically with gunicorn and systemd*
+(or w/ auto reload `--reload`)
+
+**Note:** in production, set up server to start automatically with gunicorn and systemd
 
 Expose server with:
 
@@ -41,13 +48,28 @@ Expose server with:
 
 Default is `./deploy_scripts.json`. See example in [deploy_scripts_example.json](deploy_scripts_example.json)
 
-### *Ensure the associated scripts, defined in your JSON file, have executable permissions*
+_Alternatively_, you can define your deploy_scripts file in any location, and set the following environment variable to that location: `DEPLOY_SCRIPTS_FILE`.
+
+**Note**: Ensure the associated scripts have executable permissions
 
 ```sh
 chmod +x SCRIPT_NAME
 ```
 
-Alternatively, you can define your deploy_scripts file in any location, and set the environment variable: `DEPLOY_SCRIPTS_FILE`.
+## Docker
+
+First, create the `deploy_script.json` file and place it in the project directory. See above for how to set the config file.
+
+The app, by default, sets the deploy scripts location to the project directory, and limits incoming requests to github webhook ips. To change these, edit the [Dockerfile](Dockerfile) and add:
+
+- `ENV DEPLOY_SCRIPTS_FILE=script_location.json`
+- `ENV GITHUB_IPS_ONLY=false`
+
+Finally, run the server ("detached" mode) with:
+
+```sh
+docker-compose up -d
+```
 
 ## Tests
 
@@ -55,5 +77,9 @@ Alternatively, you can define your deploy_scripts file in any location, and set 
 
 ## Todo
 
-- secrets <https://docs.github.com/en/developers/webhooks-and-events/securing-your-webhooks#setting-your-secret-token>
-- other events
+- [ ] secrets <https://docs.github.com/en/developers/webhooks-and-events/securing-your-webhooks#setting-your-secret-token>
+- [ ] other webhook events
+
+## Inspiration
+
+This project was inspired by [python-github-webhooks](https://github.com/carlos-jenkins/python-github-webhooks), which uses `flask` and supports many more features
