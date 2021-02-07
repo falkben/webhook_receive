@@ -67,3 +67,11 @@ def test_ping():
     resp = client.post("/webhook/test_app", headers={"X-GITHUB-EVENT": "ping"})
     assert resp.status_code == 200
     assert resp.json() == {"message": "pong"}
+
+
+def test_unsupported_event():
+    resp = client.post(
+        "/webhook/test_app", headers={"X-GITHUB-EVENT": "unsupported_event"}
+    )
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "Unable to process action"}
