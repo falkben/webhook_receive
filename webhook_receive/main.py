@@ -2,10 +2,22 @@ import ipaddress
 import json
 import os
 import subprocess
+from enum import Enum
 
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, status
+from dotenv import load_dotenv
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Request,
+    status,
+)
 from httpx import AsyncClient
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -22,14 +34,10 @@ def deploy_application(script_name):
     subprocess.run(script_name)
 
 
-@app.post("/webhook/{app_name}")
-async def receive_payload(
-    request: Request,
-    app_name: str,
-    background_tasks: BackgroundTasks,
-    x_github_event: str = Header(...),
-):
+AppNames = Enum("AppNames", [(k, k) for k in DEPLOY_SCRIPTS.keys()], type=str)
 
+
+async def gate_by_github_ip(request: Request):
     # Allow GitHub IPs only
     if GITHUB_IPS_ONLY:
         try:
@@ -42,11 +50,20 @@ async def receive_payload(
             allowlist = await client.get("https://api.github.com/meta")
         for valid_ip in allowlist.json()["hooks"]:
             if src_ip in ipaddress.ip_network(valid_ip):
-                break
+                return
         else:
             raise HTTPException(
                 status.HTTP_403_FORBIDDEN, "Not a GitHub hooks ip address"
             )
+
+
+@app.post("/webhook/{app_name}", dependencies=[Depends(gate_by_github_ip)])
+async def receive_payload(
+    request: Request,
+    app_name: AppNames,
+    background_tasks: BackgroundTasks,
+    x_github_event: str = Header(...),
+):
 
     if x_github_event == "push":
         payload = await request.json()
@@ -55,12 +72,9 @@ async def receive_payload(
         # check if event is referencing the default branch
         if "ref" in payload and payload["ref"] == f"refs/heads/{default_branch}":
             # check if app_name is declared in config
-            if app_name in DEPLOY_SCRIPTS:
-                script_name = DEPLOY_SCRIPTS[app_name]
-                background_tasks.add_task(deploy_application, script_name)
-                return {"message": "Deployment started"}
-
-            return {"message": "Skipped"}
+            script_name = DEPLOY_SCRIPTS[app_name]
+            background_tasks.add_task(deploy_application, script_name)
+            return {"message": "Deployment started"}
 
     elif x_github_event == "ping":
         return {"message": "pong"}
