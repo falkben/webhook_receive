@@ -74,13 +74,15 @@ async def receive_payload(
             # check if app_name is declared in config
             script_name = DEPLOY_SCRIPTS[app_name]
             background_tasks.add_task(deploy_application, script_name)
-            return {"message": "Deployment started"}
+            return {"message": f"Deployment started for [{app_name}]"}
+        else:
+            return {"message": f"No deployment action required for [{app_name}] on ref [{payload['ref']}]"}
 
     elif x_github_event == "ping":
         return {"message": "pong"}
 
     else:
-        return {"message": "Unable to process action"}
+        return {"message": f"Unable to process action [{x_github_event}] for [{app_name}]"}
 
 
 if __name__ == "__main__":
