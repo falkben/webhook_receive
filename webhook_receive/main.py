@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import ipaddress
 import json
 import os
@@ -16,9 +18,6 @@ from fastapi import (
     status,
 )
 from httpx import AsyncClient
-import json
-import hashlib
-import hmac
 
 
 def verify_signature(payload_body, secret_token, signature_header):
@@ -32,11 +31,16 @@ def verify_signature(payload_body, secret_token, signature_header):
         signature_header: header received from GitHub (x-hub-signature-256)
     """
     if not signature_header:
-        raise HTTPException(status_code=403, detail="x-hub-signature-256 header is missing!")
-    hash_object = hmac.new(secret_token.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
+        raise HTTPException(
+            status_code=403, detail="x-hub-signature-256 header is missing!"
+        )
+    hash_object = hmac.new(
+        secret_token.encode("utf-8"), msg=payload_body, digestmod=hashlib.sha256
+    )
     expected_signature = "sha256=" + hash_object.hexdigest()
     if not hmac.compare_digest(expected_signature, signature_header):
         raise HTTPException(status_code=403, detail="Request signatures didn't match!")
+
 
 load_dotenv()
 
@@ -86,7 +90,6 @@ async def receive_payload(
     background_tasks: BackgroundTasks,
     x_github_event: str = Header(...),
 ):
-
     payload_body = await request.body()
     if WEBHOOK_SECRET:
         signature_header = request.headers.get("x-hub-signature-256")
@@ -103,13 +106,17 @@ async def receive_payload(
             background_tasks.add_task(deploy_application, script_name)
             return {"message": f"Deployment started for [{app_name}]"}
         else:
-            return {"message": f"No deployment action required for [{app_name}] on ref [{payload['ref']}]"}
+            return {
+                "message": f"No deployment action required for [{app_name}] on ref [{payload['ref']}]"
+            }
 
     elif x_github_event == "ping":
         return {"message": "pong"}
 
     else:
-        return {"message": f"Unable to process action [{x_github_event}] for [{app_name}]"}
+        return {
+            "message": f"Unable to process action [{x_github_event}] for [{app_name}]"
+        }
 
 
 if __name__ == "__main__":

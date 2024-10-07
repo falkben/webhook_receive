@@ -27,7 +27,6 @@ def test_output_file():
 @pytest.mark.asyncio
 @mock.patch("webhook_receive.main.GITHUB_IPS_ONLY", True)
 async def test_github_ips_only():
-
     # using httpx async test client here to allow setting scope (e.g. IP address)
     # httpx defaults to 127.0.0.1
     async with httpx.AsyncClient(app=app, base_url="http://testserver") as client:
@@ -39,14 +38,13 @@ async def test_github_ips_only():
 
 
 def test_webhook_receive(test_output_file):
-
     data = {"ref": "refs/heads/master", "repository": {"default_branch": "master"}}
 
     resp = client.post(
         "/webhook/test_app", json=data, headers={"X-GITHUB-EVENT": "push"}
     )
     resp_data = resp.json()
-    assert resp_data == {"message": "Deployment started"}
+    assert resp_data == {"message": "Deployment started for [AppNames.test_app]"}
 
     # subprocess as background task... lets wait a little bit
     time.sleep(0.1)
@@ -74,4 +72,6 @@ def test_unsupported_event():
         "/webhook/test_app", headers={"X-GITHUB-EVENT": "unsupported_event"}
     )
     assert resp.status_code == 200
-    assert resp.json() == {"message": "Unable to process action"}
+    assert resp.json() == {
+        "message": "Unable to process action [unsupported_event] for [AppNames.test_app]"
+    }
