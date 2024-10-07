@@ -1,8 +1,0 @@
-fastapi
-uvicorn[standard]
-pytest
-pytest-env
-requests
-httpx
-pytest-asyncio
-python-dotenv
