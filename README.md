@@ -13,6 +13,7 @@ This is a work in progress and should be used with caution.
 - Run `bash` or other scripts in response to GitHub webhook events (currently only support events on the default branch)
 - Scripts registered to specific apps through a config file
 - By defining the association of scripts and events in a config file, a single instance of this server can respond to webhook events across different projects, running different scripts for each project
+- Optionally validate webhook delivery.
 
 ## Install
 
@@ -52,7 +53,7 @@ For more permanent solutions, either set up a permanent subdomain with one of th
 - payload URL (from ngrok or similar): <https://SUBDOMAIN.ngrok.io/APPNAME>
 - Content type: `application/json`
 - "just the push event"
-- secrets, not currently supported, leave blank
+- secret: to validate webhook deliveries, optionally enter a secret (the same secret should be supplied to the webhook_receive script via the `WEBHOOK_SECRET`)
 
 ## Deploy scripts
 
@@ -76,6 +77,7 @@ To override defaults, edit the [Dockerfile](Dockerfile) or [docker-compose.yml](
 | -----------           | ----------- |
 | `DEPLOY_SCRIPTS_FILE` | Sets the relative path to the deploy_scripts.json file (default: `deploy_scripts.json`) |
 | `GITHUB_IPS_ONLY`     | Allow requests only from GitHub IPs (default: `true`) |
+| `WEBHOOK_SECRET`      | Optional secret, used to validate webhook delivery |
 
 Run the server ("detached" mode) with:
 
@@ -93,7 +95,6 @@ It will also bind the current directory to the docker image, so edits you make t
 
 ## Todo
 
-- [ ] secrets <https://docs.github.com/en/developers/webhooks-and-events/securing-your-webhooks#setting-your-secret-token>
 - [ ] support additional webhook events
 
 ## To update requirements

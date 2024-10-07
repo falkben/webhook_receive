@@ -16,6 +16,27 @@ from fastapi import (
     status,
 )
 from httpx import AsyncClient
+import json
+import hashlib
+import hmac
+
+
+def verify_signature(payload_body, secret_token, signature_header):
+    """Verify that the payload was sent from GitHub by validating SHA256.
+
+    Raise and return 403 if not authorized.
+
+    Args:
+        payload_body: original request body to verify (request.body())
+        secret_token: GitHub app webhook token (WEBHOOK_SECRET)
+        signature_header: header received from GitHub (x-hub-signature-256)
+    """
+    if not signature_header:
+        raise HTTPException(status_code=403, detail="x-hub-signature-256 header is missing!")
+    hash_object = hmac.new(secret_token.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
+    expected_signature = "sha256=" + hash_object.hexdigest()
+    if not hmac.compare_digest(expected_signature, signature_header):
+        raise HTTPException(status_code=403, detail="Request signatures didn't match!")
 
 load_dotenv()
 
@@ -23,6 +44,7 @@ app = FastAPI()
 
 DEPLOY_SCRIPTS_FILE = os.getenv("DEPLOY_SCRIPTS_FILE", "deploy_scripts.json")
 GITHUB_IPS_ONLY = os.getenv("GITHUB_IPS_ONLY", "True").lower() in ["true", "1"]
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
 
 
 with open(DEPLOY_SCRIPTS_FILE) as fh:
@@ -65,8 +87,13 @@ async def receive_payload(
     x_github_event: str = Header(...),
 ):
 
+    payload_body = await request.body()
+    if WEBHOOK_SECRET:
+        signature_header = request.headers.get("x-hub-signature-256")
+        verify_signature(payload_body, WEBHOOK_SECRET, signature_header)
+
     if x_github_event == "push":
-        payload = await request.json()
+        payload = json.loads(payload_body)
 
         default_branch = payload["repository"]["default_branch"]
         # check if event is referencing the default branch
