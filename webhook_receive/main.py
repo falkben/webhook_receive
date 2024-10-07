@@ -57,7 +57,7 @@ async def gate_by_github_ip(request: Request):
             )
 
 
-@app.post("/webhook/{app_name}", dependencies=[Depends(gate_by_github_ip)])
+@app.post("/webhook/{app_name:path}", dependencies=[Depends(gate_by_github_ip)])
 async def receive_payload(
     request: Request,
     app_name: AppNames,
