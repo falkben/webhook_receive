@@ -34,6 +34,12 @@ or w/ auto reload: `--reload`
 
 **Note:** in production, set up server to start automatically with gunicorn and systemd
 
+Test locally with:
+
+```sh
+curl --fail-with-body -H "X-GitHub-Event:push" --json '{"repository": {"default_branch": "main"}, "ref": "refs/heads/main"}' -X POST http://127.0.0.1:5000/webhook/APPNAME
+```
+
 Expose local server with either (good for local testing):
 
 - `ngrok` <https://ngrok.com/>
