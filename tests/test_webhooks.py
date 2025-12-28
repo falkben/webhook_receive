@@ -29,7 +29,10 @@ def test_output_file():
 async def test_github_ips_only():
     # using httpx async test client here to allow setting scope (e.g. IP address)
     # httpx defaults to 127.0.0.1
-    async with httpx.AsyncClient(app=app, base_url="http://testserver") as client:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
         resp = await client.post(
             "/webhook/test_app", headers={"X-GITHUB-EVENT": "ping"}
         )
@@ -44,7 +47,7 @@ def test_webhook_receive(test_output_file):
         "/webhook/test_app", json=data, headers={"X-GITHUB-EVENT": "push"}
     )
     resp_data = resp.json()
-    assert resp_data == {"message": "Deployment started for [AppNames.test_app]"}
+    assert resp_data == {"message": "Deployment started for [test_app]"}
 
     # subprocess as background task... lets wait a little bit
     time.sleep(0.1)
@@ -73,5 +76,5 @@ def test_unsupported_event():
     )
     assert resp.status_code == 200
     assert resp.json() == {
-        "message": "Unable to process action [unsupported_event] for [AppNames.test_app]"
+        "message": "Unable to process action [unsupported_event] for [test_app]"
     }

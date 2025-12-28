@@ -6,23 +6,14 @@ build-backend = "hatchling.build"
 name = "webhook_receive"
 version = "0.1"
 authors = [{ name = "Benjamin Falk" }]
-dependencies = [
-  "fastapi",
-  "uvicorn[standard]",
-  "pytest",
-  "pytest-env",
-  "requests",
-  "httpx",
-  "pytest-asyncio",
-  "python-dotenv",
-]
+dependencies = ["fastapi", "uvicorn[standard]", "httpx", "dotenv"]
 requires-python = ">=3.9"
 description = "FastAPI application to process webhook events"
 readme = "README.md"
 license = { text = "Apache License (2.0)" }
 
-[project.optional-dependencies]
-test = ["pytest", "pytest-cov"]
+[dependency-groups]
+test = ["pytest", "pytest-cov", "pytest-env", "pytest-asyncio", "python-dotenv"]
 
 [project.urls]
 Repository = "https://github.com/falkben/webhook_receive/"
@@ -33,6 +24,3 @@ env = [
   "GITHUB_IPS_ONLY = false",
 ]
 testpaths = ["tests"]
-
-[tool.isort]
-profile = "black"
