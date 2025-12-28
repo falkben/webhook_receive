@@ -20,9 +20,7 @@ This is a work in progress and should be used with caution.
 ```sh
 git clone https://github.com/falkben/webhook_receive.git
 cd webhook_receive
-python3 -m venv venv
-. venv/bin/activate
-pip install -e .
+uv sync --locked
 ```
 
 ## Running
@@ -97,13 +95,15 @@ It will also bind the current directory to the docker image, so edits you make t
 
 - [ ] support additional webhook events
 
-## To update requirements
+## Dependencies
 
-Ensure you have [pip-tools](https://github.com/jazzband/pip-tools): `pip install pip-tools`
+```sh
+uv lock
+```
 
-Creating the requirements.txt file (this will overwrite): `pip-compile requirements.in`
-
-To upgrade: `pip-compile --upgrade`
+```sh
+uv lock --upgrade
+```
 
 ## Inspiration
 

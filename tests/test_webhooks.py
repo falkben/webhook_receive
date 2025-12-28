@@ -29,7 +29,10 @@ def test_output_file():
 async def test_github_ips_only():
     # using httpx async test client here to allow setting scope (e.g. IP address)
     # httpx defaults to 127.0.0.1
-    async with httpx.AsyncClient(app=app, base_url="http://testserver") as client:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
         resp = await client.post(
             "/webhook/test_app", headers={"X-GITHUB-EVENT": "ping"}
         )
