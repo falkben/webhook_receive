@@ -47,7 +47,7 @@ def test_webhook_receive(test_output_file):
         "/webhook/test_app", json=data, headers={"X-GITHUB-EVENT": "push"}
     )
     resp_data = resp.json()
-    assert resp_data == {"message": "Deployment started for [AppNames.test_app]"}
+    assert resp_data == {"message": "Deployment started for [test_app]"}
 
     # subprocess as background task... lets wait a little bit
     time.sleep(0.1)
@@ -76,5 +76,5 @@ def test_unsupported_event():
     )
     assert resp.status_code == 200
     assert resp.json() == {
-        "message": "Unable to process action [unsupported_event] for [AppNames.test_app]"
+        "message": "Unable to process action [unsupported_event] for [test_app]"
     }
